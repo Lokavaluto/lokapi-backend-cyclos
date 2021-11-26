@@ -107,15 +107,6 @@ export default abstract class CyclosBackendAbstract extends BackendAbstract {
         return recipients
     }
 
-
-    get internalId () {
-        const endingPart = this.jsonData.user_accounts[0].url.split('://')[1]
-        const splits = endingPart.split('/')
-        const host = splits[0]
-        return `cyclos:${host}`
-    }
-
-
     public async * getTransactions (order): AsyncGenerator {
         yield * mux(
             Object.values(this.userAccounts).map(

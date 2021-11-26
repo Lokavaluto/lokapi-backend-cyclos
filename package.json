@@ -26,6 +26,6 @@
         "typescript": "^4.4.4"
     },
     "dependencies": {
-        "@lokavaluto/lokapi": "^0.0.18"
+        "@lokavaluto/lokapi": ">=0.0.19-alpha"
     }
 }
