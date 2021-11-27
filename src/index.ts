@@ -1,5 +1,5 @@
 import { JsonRESTPersistentClientAbstract } from '@lokavaluto/lokapi/build/rest'
-import { t, e } from '@lokavaluto/lokapi'
+import { t, e, RestExc } from '@lokavaluto/lokapi'
 import { mux } from '@lokavaluto/lokapi/build/generator'
 import { BackendAbstract } from '@lokavaluto/lokapi/build/backend'
 
@@ -179,9 +179,7 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
         try {
             response = await super.request(path, opts)
         } catch (err) {
-            // XXXvlab: Here ``err instanceof e.HttpError`` would fail, not sure
-            // why. It seems safe enough to test directly ``err.code``.
-            if (err.code === 401) {
+            if (err instanceof RestExc.HttpError && err.code === 401) {
                 let errCode: string
                 try {
                     const data = JSON.parse(err.data)
@@ -194,8 +192,10 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
                     throw err
                 }
                 if (errCode === 'loggedOut') {
-                    console.log('Authentication Required')
-                    throw new e.AuthenticationRequired('Authentication Failed')
+                    console.log('Cyclos Authentication Required')
+                    throw new RestExc.AuthenticationRequired(
+                        err.code, 'Authentication Failed',
+                        err.data, err.response)
                 }
             }
             throw err
