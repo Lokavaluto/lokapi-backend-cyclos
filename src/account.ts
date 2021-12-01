@@ -15,7 +15,7 @@ export class CyclosAccount extends BridgeObject implements t.IAccount {
     }
 
     get internalId() {
-        return `${this.parent.internalId}/${this.parent.owner_id}/${this.jsonData.cyclos.id}`
+        return `${this.parent.internalId}/${this.jsonData.cyclos.id}`
     }
 
     public async transfer(recipient: CyclosRecipient, amount: number, description: string) {
