@@ -32,12 +32,13 @@ export default abstract class CyclosBackendAbstract extends BackendAbstract {
             // to avoid having issues with this dynamic abstract class
             constructor (
                 backends: { [index: string]: t.IBackend },
+                parent: BackendAbstract,
                 jsonData: IJsonDataWithOwner
             ) {
-                super(backends, jsonData)
+                super(backends, parent, jsonData)
             }
         }
-        return new CyclosUserAccount(this.backends, jsonData)
+        return new CyclosUserAccount(this.backends, this, jsonData)
     }
 
     private get userAccounts () {
@@ -122,11 +123,13 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
 
     AUTH_HEADER = 'Session-token'
 
+    parent: BackendAbstract
     ownerId: string
     backends: { [index: string]: t.IBackend }
 
-    constructor (backends, jsonData) {
+    constructor (backends, parent, jsonData) {
         super(jsonData.url)
+        this.parent = parent
         this.lazySetApiToken(jsonData.token)
         this.ownerId = jsonData.owner_id
         this.backends = backends
