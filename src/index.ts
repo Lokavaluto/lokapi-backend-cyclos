@@ -41,7 +41,7 @@ export default abstract class CyclosBackendAbstract extends BackendAbstract {
         return new CyclosUserAccount(this.backends, this, jsonData)
     }
 
-    private get userAccounts () {
+    public get userAccounts () {
         if (!this._userAccounts) {
             this._userAccounts = {}
             this.jsonData.accounts.forEach(
