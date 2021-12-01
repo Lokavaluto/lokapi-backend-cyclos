@@ -126,6 +126,7 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
     parent: BackendAbstract
     ownerId: string
     backends: { [index: string]: t.IBackend }
+    jsonData: { [index: string]: any }
 
     constructor (backends, parent, jsonData) {
         super(jsonData.url)
@@ -133,9 +134,16 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
         this.lazySetApiToken(jsonData.token)
         this.ownerId = jsonData.owner_id
         this.backends = backends
+        this.jsonData = jsonData
+    }
+
+    public get active () {
+        return this.jsonData.active
     }
 
     async getAccounts () {
+        if (!this.active) return []
+
         const jsonAccounts = await this.$get(`/${this.ownerId}/accounts`)
         const accounts = []
         jsonAccounts.forEach((jsonAccountData: any) => {
@@ -153,6 +161,8 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
     }
 
     public async * getTransactions (order): AsyncGenerator {
+        if (!this.active) return
+
         let responseHeaders: {[k:string]: string}
         let page = 0
         let jsonTransactions: any
