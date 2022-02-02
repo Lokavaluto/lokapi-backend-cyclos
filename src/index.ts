@@ -1,5 +1,7 @@
+import { e as HttpRequestExc } from '@0k.io/types-request'
+
 import { JsonRESTPersistentClientAbstract } from '@lokavaluto/lokapi/build/rest'
-import { t, e, RestExc } from '@lokavaluto/lokapi'
+import { t, RestExc } from '@lokavaluto/lokapi'
 import { mux } from '@lokavaluto/lokapi/build/generator'
 import { BackendAbstract } from '@lokavaluto/lokapi/build/backend'
 
@@ -192,7 +194,7 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
         try {
             response = await super.request(path, opts)
         } catch (err) {
-            if (err instanceof RestExc.HttpError && err.code === 401) {
+            if (err instanceof HttpRequestExc.HttpError && err.code === 401) {
                 let errCode: string
                 try {
                     const data = JSON.parse(err.data)

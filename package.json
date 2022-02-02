@@ -26,6 +26,7 @@
         "typescript": "^4.4.4"
     },
     "dependencies": {
+        "@0k.io/types-request": "^0.0.2",
         "@lokavaluto/lokapi": ">=0.0.19-alpha"
     }
 }
