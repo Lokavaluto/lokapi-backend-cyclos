@@ -6,6 +6,8 @@ import { CyclosRecipient } from './recipient'
 
 export class CyclosAccount extends BridgeObject implements t.IAccount {
 
+    creditable = true
+
     async getBalance() {
         return this.jsonData.cyclos.status.balance
     }
