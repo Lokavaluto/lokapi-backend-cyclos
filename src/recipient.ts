@@ -1,5 +1,6 @@
-import { t } from '@lokavaluto/lokapi'
+import { t, e } from '@lokavaluto/lokapi'
 import { Contact } from '@lokavaluto/lokapi/build/backend/odoo/contact'
+import { e as RequestExc } from '@0k.io/types-request'
 
 import { CyclosPayment } from './payment'
 
@@ -34,11 +35,22 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
                     'selected accounts. Not supported yet !'
             )
         }
-        const jsonData = await this.backends.cyclos.$post('/self/payments', {
-            amount: amount,
-            description: description,
-            subject: this.jsonData.cyclos.owner_id,
-        })
+        let jsonData
+        try {
+            jsonData = await this.backends.cyclos.$post('/self/payments', {
+                amount: amount,
+                description: description,
+                subject: this.jsonData.cyclos.owner_id,
+            })
+        } catch (err) {
+            if (err instanceof RequestExc.HttpError) {
+                if (JSON.parse(err.data).code === 'insufficientBalance')
+                    throw new e.InsufficientBalance(
+                        'Transfer failed due to insufficient balance'
+                    )
+            }
+            throw err
+        }
         return new CyclosPayment({ cyclos: this.backends.cyclos }, this, {
             cyclos: jsonData,
         })
