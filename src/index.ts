@@ -162,6 +162,10 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
         return `cyclos:${this.ownerId}@${this.host}`
     }
 
+    public async requiresUnlock () {
+        return false
+    }
+
     public async * getTransactions (order): AsyncGenerator {
         if (!this.active) return
 
