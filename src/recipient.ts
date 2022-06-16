@@ -11,6 +11,10 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
         return this.parent.internalId
     }
 
+    get fromUserAccount () {
+        return this.backends.cyclos
+    }
+
     public async transfer (amount: number, description: string) {
         const jsonDataPerform = await this.backends.cyclos.$get(
             '/self/payments/data-for-perform',
