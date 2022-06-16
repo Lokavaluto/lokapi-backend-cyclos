@@ -113,7 +113,8 @@ export default abstract class CyclosBackendAbstract extends BackendAbstract {
     public async * getTransactions (order): AsyncGenerator {
         yield * mux(
             Object.values(this.userAccounts).map(
-                (u: CyclosUserAccountAbstract) => u.getTransactions(order)),
+                (u: CyclosUserAccountAbstract) => u.getTransactions(order)
+            ),
             order
         )
     }
@@ -207,21 +208,25 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
     public async * getTransactions (order): AsyncGenerator {
         if (!this.active) return
 
-        let responseHeaders: {[k:string]: string}
+        let responseHeaders: { [k: string]: string }
         let page = 0
         let jsonTransactions: any
 
         while (true) {
             responseHeaders = {}
             jsonTransactions = await this.$get(
-                `/${this.ownerId}/transactions`, { page },
-                {}, responseHeaders
+                `/${this.ownerId}/transactions`,
+                { page },
+                {},
+                responseHeaders
             )
             for (let idx = 0; idx < jsonTransactions.length; idx++) {
                 yield new CyclosTransaction(
                     { cyclos: this, ...this.backends },
                     this,
-                    { cyclos: jsonTransactions[idx] }
+                    {
+                        cyclos: jsonTransactions[idx],
+                    }
                 )
             }
             if (responseHeaders['x-has-next-page'] === 'false') {
@@ -251,13 +256,15 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
                 if (errCode === 'loggedOut') {
                     console.log('Cyclos Authentication Required')
                     throw new RestExc.AuthenticationRequired(
-                        err.code, 'Authentication Failed',
-                        err.data, err.response)
+                        err.code,
+                        'Authentication Failed',
+                        err.data,
+                        err.response
+                    )
                 }
             }
             throw err
         }
         return response
     }
-
 }
