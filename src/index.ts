@@ -177,6 +177,25 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
         return this._accounts
     }
 
+    async getSymbol () {
+        let bankAccounts = await this.getAccounts()
+
+        if (Object.keys(bankAccounts).length === 0) {
+            throw new Error(
+                'Current user account has no bank accounts in cyclos. Unsupported yet.'
+            )
+        }
+        if (Object.keys(bankAccounts).length > 1) {
+            // We will need to select one of the source userAccount of the
+            // current logged in user
+            throw new Error(
+                'Current user account has more than one bank account in cyclos. ' +
+                    'Unsupported yet.'
+            )
+        }
+        return await bankAccounts[0].getSymbol()
+    }
+
     get internalId () {
         return `cyclos:${this.ownerId}@${this.host}`
     }
