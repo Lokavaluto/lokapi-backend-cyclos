@@ -143,19 +143,38 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
         return this.jsonData.active
     }
 
+    _accounts: Array<CyclosAccount> | null = null
+    _accountsPromise: Promise<Array<CyclosAccount>> | null = null
     async getAccounts () {
-        if (!this.active) return []
+        if (!this._accounts) {
+            if (!this._accountsPromise) {
+                const self = this
+                let _accountsPromise: Promise<any>
+                _accountsPromise = (async () => {
+                    if (!self.active) return []
 
-        const jsonAccounts = await this.$get(`/${this.ownerId}/accounts`)
-        const accounts = []
-        jsonAccounts.forEach((jsonAccountData: any) => {
-            accounts.push(
-                new CyclosAccount({ cyclos: this, ...this.backends }, this, {
-                    cyclos: jsonAccountData,
-                })
-            )
-        })
-        return accounts
+                    const jsonAccounts = await self.$get(
+                        `/${self.ownerId}/accounts`
+                    )
+                    const accounts = []
+                    jsonAccounts.forEach((jsonAccountData: any) => {
+                        accounts.push(
+                            new CyclosAccount(
+                                { cyclos: self, ...self.backends },
+                                self,
+                                {
+                                    cyclos: jsonAccountData,
+                                }
+                            )
+                        )
+                    })
+                    self._accounts = accounts
+                })()
+                this._accountsPromise = _accountsPromise
+            }
+            await this._accountsPromise
+        }
+        return this._accounts
     }
 
     get internalId () {

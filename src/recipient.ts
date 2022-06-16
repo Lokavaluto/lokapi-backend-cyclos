@@ -35,6 +35,11 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
                     'selected accounts. Not supported yet !'
             )
         }
+
+        // Remove any caching on accounts to catch balance changes
+        this.backends.cyclos._accountsPromise = null
+        this.backends.cyclos._accounts = null
+
         let jsonData
         try {
             jsonData = await this.backends.cyclos.$post('/self/payments', {
