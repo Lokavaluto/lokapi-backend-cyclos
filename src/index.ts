@@ -7,7 +7,7 @@ import { BackendAbstract } from '@lokavaluto/lokapi/build/backend'
 
 import { CyclosAccount } from './account'
 import { CyclosRecipient } from './recipient'
-import { CyclosTransaction } from './transaction'
+import { CyclosTransaction, getRelatedId } from './transaction'
 
 
 interface IJsonDataWithOwner extends t.JsonData {
@@ -210,22 +210,45 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
 
         let responseHeaders: { [k: string]: string }
         let page = 0
-        let jsonTransactions: any
+        let transactionsData: any
+        const addressResolve = {}
+
 
         while (true) {
             responseHeaders = {}
-            jsonTransactions = await this.$get(
+            transactionsData = await this.$get(
                 `/${this.ownerId}/transactions`,
                 { page },
                 {},
                 responseHeaders
             )
-            for (let idx = 0; idx < jsonTransactions.length; idx++) {
+            const uniqueAddresses = transactionsData
+                .map(getRelatedId)
+                .filter(
+                    (t: any, idx: number, self) =>
+                        self.indexOf(t) === idx &&
+                        typeof addressResolve[t] === 'undefined' &&
+                        t !== 'Admin'
+                )
+            if (uniqueAddresses.length > 0) {
+                const contacts = await this.backends.odoo.$post(
+                    '/cyclos/contact',
+                    {
+                        addresses: uniqueAddresses,
+                    }
+                )
+                for (const k in contacts) {
+                    addressResolve[k] = contacts[k]
+                }
+            }
+
+            for (let idx = 0; idx < transactionsData.length; idx++) {
                 yield new CyclosTransaction(
                     { cyclos: this, ...this.backends },
                     this,
                     {
-                        cyclos: jsonTransactions[idx],
+                        cyclos: transactionsData[idx],
+                        odoo: addressResolve,
                     }
                 )
             }
