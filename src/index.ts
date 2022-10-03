@@ -110,12 +110,12 @@ export default abstract class CyclosBackendAbstract extends BackendAbstract {
         return recipients
     }
 
-    public async * getTransactions (order): AsyncGenerator {
-        yield * mux(
+    public async * getTransactions (opts: any): AsyncGenerator {
+        yield * CyclosTransaction.mux(
             Object.values(this.userAccounts).map(
-                (u: CyclosUserAccountAbstract) => u.getTransactions(order)
+                (u: CyclosUserAccountAbstract) => u.getTransactions(opts)
             ),
-            order
+            opts?.order || ['-date']
         )
     }
 
@@ -205,20 +205,59 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
         return false
     }
 
-    public async * getTransactions (order): AsyncGenerator {
+    public async * getTransactions (opts: any): AsyncGenerator {
         if (!this.active) return
+        const order = opts?.order || ['-date']
+        if (order.length > 1) {
+            throw new Error('Multiple order keys not supported yet.')
+        }
+        let orderStr = order[0]
+        let direction = 'Asc'
+        if (orderStr.startsWith('-')) {
+            orderStr = orderStr.substring(1)
+            direction = 'Desc'
+        } else if (orderStr.startsWith('+')) {
+            orderStr = orderStr.substring(1)
+        }
+        if (!['date', 'amount'].includes(orderStr)) {
+            throw new Error(
+                `Invalid sort key '${orderStr}'. ` +
+                    "Only value supported is 'date' or 'amount'."
+            )
+        }
 
+        const orderBy = `${orderStr}${direction}`
+        let datePeriod = null
+        switch (
+            [opts?.dateBegin, opts?.dateEnd]
+                .map((x) => (x ? '1' : '0'))
+                .join('')
+        ) {
+            case '10':
+                datePeriod = [opts.dateBegin.toISOString()]
+                break
+            case '01':
+                datePeriod = [',' + opts.dateEnd.toISOString()]
+                break
+            case '11':
+                datePeriod = [opts.dateBegin, opts.dateEnd]
+                    .map((d) => d.toISOString())
+                    .join(',')
+                break
+        }
         let responseHeaders: { [k: string]: string }
         let page = 0
         let transactionsData: any
         const addressResolve = {}
-
-
         while (true) {
             responseHeaders = {}
             transactionsData = await this.$get(
                 `/${this.ownerId}/transactions`,
-                { page },
+                {
+                    page,
+                    orderBy,
+                    ...(datePeriod && { datePeriod }),
+                },
                 {},
                 responseHeaders
             )

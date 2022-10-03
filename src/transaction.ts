@@ -1,5 +1,5 @@
 import { t } from '@lokavaluto/lokapi'
-import { BridgeObject } from '@lokavaluto/lokapi/build/backend'
+import { Transaction } from '@lokavaluto/lokapi/build/backend'
 
 
 export function getRelatedId(transactionData: t.JsonData): string | number {
@@ -42,7 +42,7 @@ export function getRelatedId(transactionData: t.JsonData): string | number {
 }
 
 
-export class CyclosTransaction extends BridgeObject implements t.ITransaction {
+export class CyclosTransaction extends Transaction {
 
     get amount () {
         return this.jsonData.cyclos.amount
