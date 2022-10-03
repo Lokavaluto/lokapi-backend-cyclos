@@ -2,7 +2,7 @@ import { t } from '@lokavaluto/lokapi'
 import { Transaction } from '@lokavaluto/lokapi/build/backend'
 
 
-export function getRelatedId(transactionData: t.JsonData): string | number {
+export function getRelatedId (transactionData: t.JsonData): string | number {
     const related = transactionData.related
     if (typeof related !== 'object') {
         throw new Error(
@@ -25,8 +25,7 @@ export function getRelatedId(transactionData: t.JsonData): string | number {
             )
         }
         const relatedId = (<t.JsonData>relatedUser).id
-        if (typeof relatedId !== 'string' &&
-            typeof relatedId !== 'number') {
+        if (typeof relatedId !== 'string' && typeof relatedId !== 'number') {
             throw new Error(
                 `Unexpected 'relatedUser.id' value in transaction data: ${relatedId}`
             )

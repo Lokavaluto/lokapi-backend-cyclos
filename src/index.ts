@@ -18,12 +18,8 @@ interface IJsonDataWithOwner extends t.JsonData {
 export default abstract class CyclosBackendAbstract extends BackendAbstract {
 
     private getSubBackend (jsonData: IJsonDataWithOwner) {
-        const {
-            httpRequest,
-            base64Encode,
-            persistentStore,
-            requestLogin,
-        } = this
+        const { httpRequest, base64Encode, persistentStore, requestLogin } =
+            this
         class CyclosUserAccount extends CyclosUserAccountAbstract {
             httpRequest = httpRequest
             base64Encode = base64Encode
@@ -48,12 +44,10 @@ export default abstract class CyclosBackendAbstract extends BackendAbstract {
             this._userAccounts = {}
             this.jsonData.accounts.forEach(
                 (userAccountData: IJsonDataWithOwner) => {
-                    const cyclosUserAccount = this.getSubBackend(
-                        userAccountData
-                    )
-                    this._userAccounts[
-                        cyclosUserAccount.internalId
-                    ] = cyclosUserAccount
+                    const cyclosUserAccount =
+                        this.getSubBackend(userAccountData)
+                    this._userAccounts[cyclosUserAccount.internalId] =
+                        cyclosUserAccount
                 }
             )
         }
