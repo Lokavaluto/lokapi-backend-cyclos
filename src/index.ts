@@ -261,7 +261,7 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
                     (t: any, idx: number, self) =>
                         self.indexOf(t) === idx &&
                         typeof addressResolve[t] === 'undefined' &&
-                        t !== 'Admin'
+                        t !== 'Admin' && t !== null
                 )
             if (uniqueAddresses.length > 0) {
                 const contacts = await this.backends.odoo.$post(

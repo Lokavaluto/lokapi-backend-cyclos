@@ -2,7 +2,7 @@ import { t } from '@lokavaluto/lokapi'
 import { Transaction } from '@lokavaluto/lokapi/build/backend'
 
 
-export function getRelatedId (transactionData: t.JsonData): string | number {
+export function getRelatedId (transactionData: t.JsonData): string | number | null {
     const related = transactionData.related
     if (typeof related !== 'object') {
         throw new Error(
@@ -26,9 +26,13 @@ export function getRelatedId (transactionData: t.JsonData): string | number {
         }
         const relatedId = (<t.JsonData>relatedUser).id
         if (typeof relatedId !== 'string' && typeof relatedId !== 'number') {
-            throw new Error(
-                `Unexpected 'relatedUser.id' value in transaction data: ${relatedId}`
-            )
+            if (typeof relatedId === 'undefined') {
+                return null
+            } else {
+                throw new Error(
+                    `Unexpected 'relatedUser.id' value in transaction data: ${relatedId}`
+                )
+            }
         }
         return relatedId
     }
@@ -65,6 +69,15 @@ export class CyclosTransaction extends Transaction {
 
     get related () {
         const ownerId = getRelatedId(this.jsonData.cyclos)
+        if (ownerId === null) {
+            const cyclosRelatedUser = this.jsonData.cyclos.relatedUser?.display
+            if (typeof cyclosRelatedUser === 'string') {
+                return cyclosRelatedUser
+            }
+            throw new Error(
+                'Unexpected transaction data: could not infer name of related user'
+            )
+        }
         if (ownerId === 'Admin') {
             return 'Admin'
         }
