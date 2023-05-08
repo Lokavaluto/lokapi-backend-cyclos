@@ -1,4 +1,4 @@
-import { e as HttpRequestExc } from '@0k.io/types-request'
+import { e as HttpRequestExc } from '@0k/types-request'
 
 import { JsonRESTPersistentClientAbstract } from '@lokavaluto/lokapi/build/rest'
 import { t, RestExc } from '@lokavaluto/lokapi'

@@ -1,6 +1,6 @@
 import { t, e } from '@lokavaluto/lokapi'
 import { Contact } from '@lokavaluto/lokapi/build/backend/odoo/contact'
-import { e as RequestExc } from '@0k.io/types-request'
+import { e as RequestExc } from '@0k/types-request'
 
 import { CyclosPayment } from './payment'
 
