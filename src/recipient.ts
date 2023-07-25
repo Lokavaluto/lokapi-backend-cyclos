@@ -2,7 +2,7 @@ import { t, e } from '@lokavaluto/lokapi'
 import { Contact } from '@lokavaluto/lokapi/build/backend/odoo/contact'
 import { e as RequestExc } from '@0k/types-request'
 
-import { CyclosPayment } from './payment'
+import { CyclosTransaction } from './transaction'
 
 
 export class CyclosRecipient extends Contact implements t.IRecipient {
@@ -64,8 +64,19 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
             }
             throw err
         }
-        return new CyclosPayment({ cyclos: this.backends.cyclos }, this, {
-            cyclos: jsonData,
+        return new CyclosTransaction({ cyclos: this.backends.cyclos }, this, {
+            cyclos: {
+                ...jsonData,
+                ...{
+                    amount: -amount,
+                    related: jsonData.to,
+                    relatedUser: jsonData.toUser,
+                    currency: jsonData.currency.suffix,
+                }
+            },
+            odoo: Object.fromEntries([
+                [this.jsonData.cyclos.owner_id, this.jsonData.odoo]
+            ]),
         })
     }
 
