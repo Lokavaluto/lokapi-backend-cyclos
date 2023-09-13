@@ -1,10 +1,10 @@
 import { t } from '@lokavaluto/lokapi'
-import { BridgeObject } from '@lokavaluto/lokapi/build/backend'
+import Account from '@lokavaluto/lokapi/build/backend/odoo/account'
 
 import { CyclosRecipient } from './recipient'
 
 
-export class CyclosAccount extends BridgeObject implements t.IAccount {
+export class CyclosAccount extends Account implements t.IAccount {
 
     creditable = true
 

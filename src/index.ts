@@ -9,6 +9,7 @@ import { CyclosAccount } from './account'
 import { CyclosRecipient } from './recipient'
 import { CyclosTransaction, getRelatedId } from './transaction'
 
+import { CyclosCreditRequest } from "./creditRequest"
 
 interface IJsonDataWithOwner extends t.JsonData {
     owner_id: string
@@ -323,5 +324,21 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
             throw err
         }
         return response
+    }
+
+    public async makeCreditRequest(
+        jsonData: t.JsonData
+    ): Promise<t.ICreditRequest> {
+        const symbol = await this.getSymbol()
+        return new CyclosCreditRequest(
+            {
+                ...this.backends,
+            },
+            this,
+            {
+                odoo: jsonData,
+                cyclos: { symbol },
+            }
+        )
     }
 }
