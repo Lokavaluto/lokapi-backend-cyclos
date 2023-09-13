@@ -51,8 +51,8 @@ export class CyclosTransaction extends Transaction {
         return this.jsonData.cyclos.amount
     }
 
-    get currency () {
-        return this.jsonData.cyclos.currency
+    get currency() {
+        return this.jsonData.cyclos.symbol
     }
 
     get date () {

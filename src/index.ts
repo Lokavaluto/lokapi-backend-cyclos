@@ -243,6 +243,7 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
         let page = 0
         let transactionsData: any
         const addressResolve = {}
+        const symbol = await this.getSymbol()
         while (true) {
             responseHeaders = {}
             transactionsData = await this.$get(
@@ -280,7 +281,7 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
                     { cyclos: this, ...this.backends },
                     this,
                     {
-                        cyclos: transactionsData[idx],
+                        cyclos: { symbol, ...transactionsData[idx] },
                         odoo: addressResolve,
                     }
                 )
