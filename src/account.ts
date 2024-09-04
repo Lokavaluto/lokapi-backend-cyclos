@@ -8,19 +8,23 @@ export class CyclosAccount extends Account implements t.IAccount {
 
     creditable = true
 
-    async getBalance() {
+    async getBalance () {
         return this.jsonData.cyclos.status.balance
     }
 
-    async getSymbol() {
+    async getSymbol () {
         return this.jsonData.cyclos.currency.symbol
     }
 
-    get internalId() {
+    get internalId () {
         return `${this.parent.internalId}/${this.jsonData.cyclos.id}`
     }
 
-    public async transfer(recipient: CyclosRecipient, amount: number, description: string) {
+    public async transfer (
+        recipient: CyclosRecipient,
+        amount: number,
+        description: string
+    ) {
         // On cyclos, account transfer is managed through the owner account
         return recipient.transfer(amount, description)
     }
@@ -33,7 +37,7 @@ export class CyclosAccount extends Account implements t.IAccount {
      *
      * @returns Object
      */
-    public async getCreditUrl(amount: number): Promise<string> {
+    public async getCreditUrl (amount: number): Promise<string> {
         return this.backends.odoo.$post('/cyclos/credit', {
             owner_id: this.parent.ownerId,
             amount,
