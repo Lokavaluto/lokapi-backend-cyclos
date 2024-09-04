@@ -18,6 +18,8 @@ interface IJsonDataWithOwner extends t.JsonData {
 
 export default abstract class CyclosBackendAbstract extends BackendAbstract {
 
+    splitMemoSupport = false
+
     private getSubBackend (jsonData: IJsonDataWithOwner) {
         const { httpRequest, base64Encode, persistentStore, requestLogin } =
             this

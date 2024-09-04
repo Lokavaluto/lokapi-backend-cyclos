@@ -19,7 +19,16 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
         return this.fromUserAccount.getSymbol()
     }
 
-    public async transfer (amount: number, description: string) {
+    public async transfer (
+        amount: number,
+        senderMemo: string,
+        recipientMemo: string = senderMemo
+    ) {
+        if (senderMemo !== recipientMemo)
+            throw Error(
+                "Cyclos backend doesn't support split memo on transfer yet."
+            )
+
         const jsonDataPerform = await this.backends.cyclos.$get(
             '/self/payments/data-for-perform',
             {
@@ -52,7 +61,7 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
         try {
             jsonData = await this.backends.cyclos.$post('/self/payments', {
                 amount: amount,
-                description: description,
+                description: senderMemo,
                 subject: this.jsonData.cyclos.owner_id,
             })
         } catch (err) {

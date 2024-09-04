@@ -23,10 +23,11 @@ export class CyclosAccount extends Account implements t.IAccount {
     public async transfer (
         recipient: CyclosRecipient,
         amount: number,
-        description: string
+        senderMemo: string,
+        recipientMemo: string
     ) {
         // On cyclos, account transfer is managed through the owner account
-        return recipient.transfer(amount, description)
+        return recipient.transfer(amount, senderMemo, recipientMemo)
     }
 
 
