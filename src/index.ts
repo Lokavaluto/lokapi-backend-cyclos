@@ -195,7 +195,14 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
     }
 
     get internalId () {
-        return `cyclos:${this.ownerId}@${this.host}`
+        let port
+        if ((this.port == 80 && this.protocol == 'http') ||
+            (this.port == 443 && this.protocol == 'https')) {
+            port = ""
+        } else {
+            port = `:${this.port}`
+        }
+        return `cyclos:${this.ownerId}@${this.host}${port}`
     }
 
     public async requiresUnlock () {
