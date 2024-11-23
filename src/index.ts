@@ -170,7 +170,13 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
                 })()
                 this._accountsPromise = _accountsPromise
             }
-            await this._accountsPromise
+            try {
+                await this._accountsPromise
+            } catch (err) {
+                this._accountsPromise = null
+                this._accounts = null
+                throw err
+            }
         }
         return this._accounts
     }
