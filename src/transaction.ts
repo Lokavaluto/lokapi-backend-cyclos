@@ -52,7 +52,17 @@ export class CyclosTransaction extends Transaction {
     }
 
     get currency() {
-        return this.jsonData.cyclos.symbol
+        // XXXvlab: jsonData can come from different API return result, and are not\
+        // exactly the same even if they describe roughly a
+        // transaction.
+        // Here, on transaction lists, we have ``symbol`` and
+        // ``currency`` set, with only ``symbol`` being the actual
+        // currency symbol.
+        // Whereas after a payment, we get only ``currency`` which is
+        // the actual currency symbol as well.
+        // The following allows to support both case and return the
+        // currency symbol.
+        return this.jsonData.cyclos.symbol || this.jsonData.cyclos.currency
     }
 
     get date () {

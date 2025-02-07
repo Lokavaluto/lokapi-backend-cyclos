@@ -73,7 +73,7 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
             }
             throw err
         }
-        return new CyclosTransaction({ cyclos: this.backends.cyclos }, this, {
+        return new CyclosTransaction({ cyclos: this.backends.cyclos }, this.parent, {
             cyclos: {
                 ...jsonData,
                 ...{
