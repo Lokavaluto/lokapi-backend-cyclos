@@ -4,6 +4,7 @@ import { JsonRESTPersistentClientAbstract } from '@lokavaluto/lokapi/build/rest'
 import { t, RestExc } from '@lokavaluto/lokapi'
 import { mux } from '@lokavaluto/lokapi/build/generator'
 import { BackendAbstract } from '@lokavaluto/lokapi/build/backend'
+import UserAccount from '@lokavaluto/lokapi/build/backend/odoo/userAccount'
 
 import { CyclosAccount } from './account'
 import { CyclosRecipient } from './recipient'
@@ -20,26 +21,85 @@ export default abstract class CyclosBackendAbstract extends BackendAbstract {
 
     splitMemoSupport = false
 
+    _cyclosBackends: { [index: string]: any } = {}
+
+    getCyclosBackend (url: any, token: any) {
+        if (!this._cyclosBackends[url]) {
+            const { httpRequest, base64Encode, persistentStore, requestLogin } = this
+            class Cyclos extends JsonRESTPersistentClientAbstract {
+                AUTH_HEADER = 'Session-token'
+
+                httpRequest = httpRequest
+                base64Encode = base64Encode
+                persistentStore = persistentStore
+                requestLogin = requestLogin
+
+                constructor(url, token) {
+                    super(url)
+                    this.lazySetApiToken(token)
+                }
+
+                get internalId () {
+                    let port
+                    if ((this.port == 80 && this.protocol == 'http') ||
+                        (this.port == 443 && this.protocol == 'https')) {
+                        port = ""
+                    } else {
+                        port = `:${this.port}`
+                    }
+                    return `${this.host}${port}`
+                }
+
+                public async request (path: string, opts: t.HttpOpts): Promise<any> {
+                    let response: any
+                    try {
+                        response = await super.request(path, opts)
+                    } catch (err) {
+                        if (err instanceof HttpRequestExc.HttpError && err.code === 401) {
+                            let errCode: string
+                            try {
+                                const data = JSON.parse(err.data)
+                                errCode = data.code
+                            } catch (err2) {
+                                console.log(
+                                    'Could not get error code from JSON request body',
+                                    err2
+                                )
+                                throw err
+                            }
+                            if (errCode === 'loggedOut') {
+                                console.log('Cyclos Authentication Required')
+                                throw new RestExc.AuthenticationRequired(
+                                    err.code,
+                                    'Authentication Failed',
+                                    err.data,
+                                    err.response
+                                )
+                            }
+                        }
+                        throw err
+                    }
+                    return response
+                }
+
+            }
+            this._cyclosBackends[url] = new Cyclos(url, token)
+        }
+        return this._cyclosBackends[url]
+    }
+
+    
     private getSubBackend (jsonData: IJsonDataWithOwner) {
         const { httpRequest, base64Encode, persistentStore, requestLogin } =
             this
-        class CyclosUserAccount extends CyclosUserAccountAbstract {
-            httpRequest = httpRequest
-            base64Encode = base64Encode
-            persistentStore = persistentStore
-            requestLogin = requestLogin
-
-            // This function declaration seems necessary for typescript
-            // to avoid having issues with this dynamic abstract class
-            constructor (
-                backends: { [index: string]: t.IBackend },
-                parent: BackendAbstract,
-                jsonData: IJsonDataWithOwner
-            ) {
-                super(backends, parent, jsonData)
-            }
-        }
-        return new CyclosUserAccount(this.backends, this, jsonData)
+        return new CyclosUserAccount(
+            {
+                cyclos: this.getCyclosBackend(jsonData.url, jsonData.token),
+                ...this.backends
+            },
+            this,
+            jsonData
+        )
     }
 
     public get userAccounts () {
@@ -110,7 +170,7 @@ export default abstract class CyclosBackendAbstract extends BackendAbstract {
     public async * getTransactions (opts: any): AsyncGenerator {
         yield * CyclosTransaction.mux(
             Object.values(this.userAccounts).map(
-                (u: CyclosUserAccountAbstract) => u.getTransactions(opts)
+                (u: CyclosUserAccount) => u.getTransactions(opts)
             ),
             opts?.order || ['-date']
         )
@@ -119,26 +179,21 @@ export default abstract class CyclosBackendAbstract extends BackendAbstract {
 }
 
 
-abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstract {
+class CyclosUserAccount extends UserAccount {
 
-    AUTH_HEADER = 'Session-token'
-
-    parent: BackendAbstract
     ownerId: string
-    backends: { [index: string]: t.IBackend }
-    jsonData: { [index: string]: any }
 
     constructor (backends, parent, jsonData) {
-        super(jsonData.url)
-        this.parent = parent
-        this.lazySetApiToken(jsonData.token)
+        super(backends, parent, jsonData)
         this.ownerId = jsonData.owner_id
-        this.backends = backends
-        this.jsonData = jsonData
     }
 
     public get active () {
         return this.jsonData.active
+    }
+
+    get internalId () {
+        return `cyclos:${this.ownerId}@${this.backends.cyclos.internalId}`
     }
 
     _accounts: Array<CyclosAccount> | null = null
@@ -151,7 +206,7 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
                 _accountsPromise = (async () => {
                     if (!self.active) return []
 
-                    const jsonAccounts = await self.$get(
+                    const jsonAccounts = await self.backends.cyclos.$get(
                         `/${self.ownerId}/accounts`
                     )
                     const accounts = []
@@ -200,16 +255,6 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
         return await bankAccounts[0].getSymbol()
     }
 
-    get internalId () {
-        let port
-        if ((this.port == 80 && this.protocol == 'http') ||
-            (this.port == 443 && this.protocol == 'https')) {
-            port = ""
-        } else {
-            port = `:${this.port}`
-        }
-        return `cyclos:${this.ownerId}@${this.host}${port}`
-    }
 
     public async requiresUnlock () {
         return false
@@ -262,7 +307,7 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
         const symbol = await this.getSymbol()
         while (true) {
             responseHeaders = {}
-            transactionsData = await this.$get(
+            transactionsData = await this.backends.cyclos.$get(
                 `/${this.ownerId}/transactions`,
                 {
                     page,
@@ -307,38 +352,6 @@ abstract class CyclosUserAccountAbstract extends JsonRESTPersistentClientAbstrac
             }
             page++
         }
-    }
-
-    public async request (path: string, opts: t.HttpOpts): Promise<any> {
-        let response: any
-        try {
-            response = await super.request(path, opts)
-        } catch (err) {
-            if (err instanceof HttpRequestExc.HttpError && err.code === 401) {
-                let errCode: string
-                try {
-                    const data = JSON.parse(err.data)
-                    errCode = data.code
-                } catch (err2) {
-                    console.log(
-                        'Could not get error code from JSON request body',
-                        err2
-                    )
-                    throw err
-                }
-                if (errCode === 'loggedOut') {
-                    console.log('Cyclos Authentication Required')
-                    throw new RestExc.AuthenticationRequired(
-                        err.code,
-                        'Authentication Failed',
-                        err.data,
-                        err.response
-                    )
-                }
-            }
-            throw err
-        }
-        return response
     }
 
     public async makeCreditRequest(
