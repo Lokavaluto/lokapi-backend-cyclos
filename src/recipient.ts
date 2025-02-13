@@ -24,12 +24,15 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
         senderMemo: string,
         recipientMemo: string = senderMemo
     ) {
+        let userAccount = this.fromUserAccount
+        let backendCyclos = this.fromUserAccount.backends.cyclos
+
         if (senderMemo !== recipientMemo)
             throw Error(
                 "Cyclos backend doesn't support split memo on transfer yet."
             )
 
-        const jsonDataPerform = await this.backends.cyclos.$get(
+        const jsonDataPerform = await backendCyclos.$get(
             '/self/payments/data-for-perform',
             {
                 to: this.jsonData.cyclos.owner_id,
@@ -54,12 +57,12 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
         }
 
         // Remove any caching on accounts to catch balance changes
-        this.backends.cyclos._accountsPromise = null
-        this.backends.cyclos._accounts = null
+        userAccount._accountsPromise = null
+        userAccount._accounts = null
 
         let jsonData
         try {
-            jsonData = await this.backends.cyclos.$post('/self/payments', {
+            jsonData = await backendCyclos.$post('/self/payments', {
                 amount: amount,
                 description: senderMemo,
                 subject: this.jsonData.cyclos.owner_id,
@@ -73,7 +76,7 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
             }
             throw err
         }
-        return new CyclosTransaction({ cyclos: this.backends.cyclos }, this.parent, {
+        return new CyclosTransaction(userAccount.backends, this.parent, {
             cyclos: {
                 ...jsonData,
                 ...{
