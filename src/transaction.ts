@@ -93,4 +93,18 @@ export class CyclosTransaction extends Transaction {
         }
         return this.jsonData.odoo[ownerId]?.public_name || ownerId
     }
+
+    get isTopUp () {
+        if (this.related === 'Admin' && this.amount >= 0) {
+            return true
+        }
+        return false
+    }
+
+    get isReconversion () {
+        if (this.related === 'Admin' && this.amount <= 0) {
+            return true
+        }
+        return false
+    }
 }
