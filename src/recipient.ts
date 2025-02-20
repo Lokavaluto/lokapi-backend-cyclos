@@ -76,7 +76,9 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
             }
             throw err
         }
-        return new CyclosTransaction(userAccount.backends, this.parent, {
+        let reconversionStatusResolve = {}
+        reconversionStatusResolve[`${this.backendId}/tx/${jsonData.id}`] = false
+        return new CyclosTransaction(userAccount.backends, this, {
             cyclos: {
                 ...jsonData,
                 ...{
@@ -86,9 +88,12 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
                     currency: jsonData.currency.suffix,
                 }
             },
-            odoo: Object.fromEntries([
-                [this.jsonData.cyclos.owner_id, this.jsonData.odoo]
-            ]),
+            odoo: {
+                addressResolve: Object.fromEntries([
+                    [this.jsonData.cyclos.owner_id, this.jsonData.odoo]
+                ]),
+                reconversionStatusResolve,
+            }
         })
     }
 

@@ -91,7 +91,7 @@ export class CyclosTransaction extends Transaction {
         if (ownerId === 'Admin') {
             return 'Admin'
         }
-        return this.jsonData.odoo[ownerId]?.public_name || ownerId
+        return this.jsonData.odoo.addressResolve[ownerId]?.public_name || ownerId
     }
 
     get isTopUp () {
@@ -102,9 +102,12 @@ export class CyclosTransaction extends Transaction {
     }
 
     get isReconversion () {
-        if (this.related === 'Admin' && this.amount <= 0) {
-            return true
+        if (this.related !== 'Admin' || this.amount > 0) {
+            return false
         }
-        return false
+        const backend = this.parent.parent
+        const backendInternalId = backend.internalId.replace(":", "://")
+        return this.jsonData.odoo.reconversionStatusResolve[`${backendInternalId}/tx/${this.id}`] || true
     }
+
 }
