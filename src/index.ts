@@ -303,7 +303,9 @@ class CyclosUserAccount extends UserAccount {
         let responseHeaders: { [k: string]: string }
         let page = 0
         let transactionsData: any
+        const backend = this.parent
         const addressResolve = {}
+        const reconversionStatusResolve = {}
         const symbol = await this.getSymbol()
         while (true) {
             responseHeaders = {}
@@ -336,6 +338,26 @@ class CyclosUserAccount extends UserAccount {
                     addressResolve[k] = contacts[k]
                 }
             }
+            // XXXvlab: will need to change all internalId's to match new
+            // format
+            const backendInternalId = backend.internalId.replace(":", "://")
+
+            const uniqueReconversionAddresses = transactionsData
+                .filter((txData: any) => (getRelatedId(txData) === 'Admin' && txData.amount <= 0))
+                .map((txData:any) => `${backendInternalId}/tx/${txData.id}`)
+                .filter((txId: any, idx, self) => self.indexOf(txId) === idx &&
+                    typeof reconversionStatusResolve[txId] === 'undefined')
+
+            if (uniqueReconversionAddresses.length > 0) {
+                const reconversions = await this.backends.odoo.$post(
+                    '/partner/reconversions',
+                    {
+                        transactions: uniqueReconversionAddresses,
+                    })
+                for (const t in reconversions) {
+                    reconversionStatusResolve[t] = reconversions[t]
+                }
+            }
 
             for (let idx = 0; idx < transactionsData.length; idx++) {
                 yield new CyclosTransaction(
@@ -343,7 +365,7 @@ class CyclosUserAccount extends UserAccount {
                     this,
                     {
                         cyclos: { symbol, ...transactionsData[idx] },
-                        odoo: addressResolve,
+                        odoo: { addressResolve, reconversionStatusResolve },
                     }
                 )
             }
