@@ -39,6 +39,9 @@ export class CyclosAccount extends Account implements t.IAccount {
      * @returns Object
      */
     public async getCreditUrl (amount: number): Promise<string> {
+        if (amount > 2**46 - 1) {
+            throw new Error('Amount is exceeding limits for safe representation')
+        }
         return this.backends.odoo.$post('/cyclos/credit', {
             owner_id: this.parent.ownerId,
             amount,
