@@ -1,11 +1,11 @@
 import { t, e } from '@lokavaluto/lokapi'
-import { Contact } from '@lokavaluto/lokapi/build/backend/odoo/contact'
+import Recipient from '@lokavaluto/lokapi/build/backend/odoo/recipient'
 import { e as RequestExc } from '@0k/types-request'
 
 import { CyclosTransaction } from './transaction'
 
 
-export class CyclosRecipient extends Contact implements t.IRecipient {
+export class CyclosRecipient extends Recipient implements t.IRecipient {
 
     get backendId () {
         return this.parent.internalId
@@ -18,7 +18,12 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
     getSymbol () {
         return this.fromUserAccount.getSymbol()
     }
-
+    
+    get walletInternalId () {
+        debugger
+        return `cyclos:${this.jsonData.cyclos.owner_id}` 
+    }
+    
     public async transfer (
         amount: number,
         senderMemo: string,
