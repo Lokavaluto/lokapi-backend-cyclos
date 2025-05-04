@@ -48,4 +48,8 @@ export class CyclosAccount extends Account implements t.IAccount {
         })
     }
 
+    public async isBusinessForFinanceBackend () {
+        return this.jsonData.cyclos.type.internalName === "comptePro"
+    }
+
 }

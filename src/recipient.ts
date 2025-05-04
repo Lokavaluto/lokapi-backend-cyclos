@@ -101,4 +101,9 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
         return `${this.parent.internalId}/${this.backends.cyclos.owner_id}`
     }
 
+    public async isBusinessForFinanceBackend () {
+        // XXXvlab: not yet implemented
+        return false
+    }
+
 }

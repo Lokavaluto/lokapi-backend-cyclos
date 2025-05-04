@@ -376,6 +376,11 @@ class CyclosUserAccount extends UserAccount {
         }
     }
 
+    public async isBusinessForFinanceBackend () {
+        console.warn("Cyclos User group info not implemented yet")
+        return false
+    }
+
     public async makeCreditRequest(
         jsonData: t.JsonData
     ): Promise<t.ICreditRequest> {
