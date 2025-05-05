@@ -20,14 +20,14 @@ export class CyclosAccount extends Account implements t.IAccount {
         return `${this.parent.internalId}/${this.jsonData.cyclos.id}`
     }
 
-    public async transfer (
+    public async prepareTransfer (
         recipient: CyclosRecipient,
-        amount: number,
+        amount: string,
         senderMemo: string,
         recipientMemo: string
     ) {
         // On cyclos, account transfer is managed through the owner account
-        return recipient.transfer(amount, senderMemo, recipientMemo)
+        return recipient.prepareTransfer(amount, senderMemo, recipientMemo)
     }
 
 
