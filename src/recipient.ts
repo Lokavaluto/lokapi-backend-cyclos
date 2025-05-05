@@ -78,7 +78,7 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
         }
         let reconversionStatusResolve = {}
         reconversionStatusResolve[`${this.backendId}/tx/${jsonData.id}`] = false
-        return new CyclosTransaction(userAccount.backends, this, {
+        return [new CyclosTransaction(userAccount.backends, this, {
             cyclos: {
                 ...jsonData,
                 ...{
@@ -94,7 +94,7 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
                 ]),
                 reconversionStatusResolve,
             }
-        })
+        })]
     }
 
     get internalId () {
