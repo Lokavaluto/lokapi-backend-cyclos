@@ -1,5 +1,7 @@
 import { t, e } from '@lokavaluto/lokapi'
 import { Contact } from '@lokavaluto/lokapi/build/backend/odoo/contact'
+import { PlannedTransaction } from '@lokavaluto/lokapi/build/backend/odoo/transaction'
+
 import { e as RequestExc } from '@0k/types-request'
 
 import { CyclosTransaction } from './transaction'
@@ -19,7 +21,29 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
         return this.fromUserAccount.getSymbol()
     }
 
-    public async transfer (
+
+    public async prepareTransfer (
+        amount: string,
+        senderMemo: string,
+        recipientMemo: string = senderMemo
+    ) {
+        return [new PlannedTransaction({
+            amount,
+            description: senderMemo,
+            related: this.name,
+            tags: ["collateralized"],
+            executeData: {
+                fn: this.transferFn.bind(this),
+                args: [
+                    amount,
+                    senderMemo,
+                    recipientMemo
+                ]
+            }
+        })]
+    }
+
+    public async transferFn (
         amount: number,
         senderMemo: string,
         recipientMemo: string = senderMemo
