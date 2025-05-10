@@ -47,7 +47,7 @@ export default abstract class CyclosBackendAbstract extends BackendAbstract {
                     } else {
                         port = `:${this.port}`
                     }
-                    return `${this.host}${port}`
+                    return `cyclos://${this.host}${port}`
                 }
 
                 public async request (path: string, opts: t.HttpOpts): Promise<any> {
@@ -193,9 +193,9 @@ class CyclosUserAccount extends UserAccount {
     }
 
     get internalId () {
-        return `cyclos:${this.ownerId}@${this.backends.cyclos.internalId}`
+        return `${this.backends.cyclos.internalId}/user/${this.ownerId}`
     }
-
+    
     _accounts: Array<CyclosAccount> | null = null
     _accountsPromise: Promise<Array<CyclosAccount>> | null = null
     async getAccounts () {
