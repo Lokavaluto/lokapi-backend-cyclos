@@ -1,5 +1,5 @@
 import { t, e } from '@lokavaluto/lokapi'
-import { Contact } from '@lokavaluto/lokapi/build/backend/odoo/contact'
+import Recipient from '@lokavaluto/lokapi/build/backend/odoo/recipient'
 import { PlannedTransaction } from '@lokavaluto/lokapi/build/backend/odoo/transaction'
 
 import { e as RequestExc } from '@0k/types-request'
@@ -7,7 +7,7 @@ import { e as RequestExc } from '@0k/types-request'
 import { CyclosTransaction } from './transaction'
 
 
-export class CyclosRecipient extends Contact implements t.IRecipient {
+export class CyclosRecipient extends Recipient implements t.IRecipient {
 
     get backendId () {
         return this.parent.internalId
@@ -15,6 +15,12 @@ export class CyclosRecipient extends Contact implements t.IRecipient {
 
     get fromUserAccount () {
         return this.backends.cyclos
+    }
+
+    get userAccountInternalId () {
+        // XXXvlab: should be the second
+        return `cyclos:${this.jsonData.cyclos.owner_id}`
+        //return `${this.backendId}/user/${this.jsonData.cyclos.owner_id}`
     }
 
     getSymbol () {
