@@ -88,7 +88,10 @@ export default abstract class CyclosBackendAbstract extends BackendAbstract {
         return this._cyclosBackends[url]
     }
 
-    
+    async isUnconfigured() {
+        return false  // Accounts can't be configured yet
+    }
+
     private getSubBackend (jsonData: IJsonDataWithOwner) {
         const { httpRequest, base64Encode, persistentStore, requestLogin } =
             this
