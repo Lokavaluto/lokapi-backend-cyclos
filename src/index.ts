@@ -266,6 +266,25 @@ class CyclosUserAccount extends UserAccount {
         return await bankAccounts[0].getSymbol()
     }
 
+    async getCurrencyName () {
+        let bankAccounts = await this.getAccounts()
+
+        if (Object.keys(bankAccounts).length === 0) {
+            throw new Error(
+                'Current user account has no bank accounts in cyclos. Unsupported yet.'
+            )
+        }
+        if (Object.keys(bankAccounts).length > 1) {
+            // We will need to select one of the source userAccount of the
+            // current logged in user
+            throw new Error(
+                'Current user account has more than one bank account in cyclos. ' +
+                    'Unsupported yet.'
+            )
+        }
+
+        return await bankAccounts[0].jsonData.cyclos.currency.name
+    }
 
     public async requiresUnlock () {
         return false
