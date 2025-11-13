@@ -128,7 +128,7 @@ export class CyclosRecipient extends Recipient implements t.IRecipient {
     }
 
     get internalId () {
-        return `${this.parent.internalId}/${this.backends.cyclos.owner_id}`
+        return `${this.parent.internalId}/${this.jsonData.cyclos.owner_id}`
     }
 
     public async isBusinessForFinanceBackend () {
