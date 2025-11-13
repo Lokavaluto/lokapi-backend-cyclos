@@ -22,10 +22,11 @@
         "@typescript-eslint/parser": "^4.29.0",
         "eslint": "^7.32.0",
         "eslint-config-standard": "^16.0.3",
-        "typedoc": "^0.22.8",
-        "typescript": "^4.4.4"
+        "typedoc": "^0.28.9",
+        "typescript": "^5.9.2"
     },
     "dependencies": {
+        "@0k/cache": "^0.0.7",
         "@0k/types-request": "^1.0.1",
         "@lokavaluto/lokapi": "0.1.0 || >=0.1.1-alpha"
     }

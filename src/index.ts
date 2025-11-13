@@ -11,6 +11,7 @@ import { CyclosRecipient } from './recipient'
 import { CyclosTransaction, getRelatedId } from './transaction'
 
 import { CyclosCreditRequest } from "./creditRequest"
+import { ttlcache, singleton } from './cache'
 
 interface IJsonDataWithOwner extends t.JsonData {
     owner_id: string
@@ -105,22 +106,22 @@ export default abstract class CyclosBackendAbstract extends BackendAbstract {
         )
     }
 
+    @singleton({key: (x) => x.instance.jsonData.accounts})
     public get userAccounts () {
-        if (!this._userAccounts) {
-            this._userAccounts = {}
-            this.jsonData.accounts.forEach(
-                (userAccountData: IJsonDataWithOwner) => {
-                    const cyclosUserAccount =
-                        this.getSubBackend(userAccountData)
-                    this._userAccounts[cyclosUserAccount.internalId] =
-                        cyclosUserAccount
-                }
-            )
-        }
-        return this._userAccounts
+        const userAccounts = {}
+
+        this.jsonData.accounts.forEach(
+            (userAccountData: IJsonDataWithOwner) => {
+                const cyclosUserAccount =
+                    this.getSubBackend(userAccountData)
+                userAccounts[cyclosUserAccount.internalId] =
+                    cyclosUserAccount
+            }
+        )
+
+        return userAccounts
     }
 
-    private _userAccounts: any
 
 
     public async getAccounts (): Promise<any> {
