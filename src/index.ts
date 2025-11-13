@@ -122,7 +122,26 @@ export default abstract class CyclosBackendAbstract extends BackendAbstract {
         return userAccounts
     }
 
+    protected getUserAccountsFromWalletIdent(currencyIdent: string, walletIdent: string): CyclosUserAccount {
+        if (Object.keys(this.userAccounts).length === 0) {
+            throw new Error(
+                'Current user has no account in cyclos. Unsupported yet.'
+            )
+        }
+        if (Object.keys(this.userAccounts).length > 1) {
+            // We will need to select one of the source userAccount of the
+            // current logged in user
+            throw new Error(
+                'Current user has more than one account in cyclos. ' +
+                    'Unsupported yet.'
+            )
+        }
+        const currentUserAccount = Object.values(this.userAccounts)[0] as any
 
+        return this.getSubBackend({
+            owner_id: walletIdent, url: currentUserAccount.jsonData.url , active: true, token: currentUserAccount.backends.cyclos._apiToken
+        })
+    }
 
     public async getAccounts (): Promise<any> {
         const backendBankAccounts = []
@@ -200,44 +219,32 @@ class CyclosUserAccount extends UserAccount {
         return `cyclos:${this.ownerId}@${this.backends.cyclos.internalId}`
     }
 
-    _accounts: Array<CyclosAccount> | null = null
-    _accountsPromise: Promise<Array<CyclosAccount>> | null = null
+    @ttlcache({ttl: 5})
     async getAccounts () {
-        if (!this._accounts) {
-            if (!this._accountsPromise) {
-                const self = this
-                let _accountsPromise: Promise<any>
-                _accountsPromise = (async () => {
-                    if (!self.active) return []
+        return await this.getAccountsByOwnerId(this.ownerId)
+    }
 
-                    const jsonAccounts = await self.backends.cyclos.$get(
-                        `/${self.ownerId}/accounts`
-                    )
-                    const accounts = []
-                    jsonAccounts.forEach((jsonAccountData: any) => {
-                        accounts.push(
-                            new CyclosAccount(
-                                { cyclos: self, ...self.backends },
-                                self,
-                                {
-                                    cyclos: jsonAccountData,
-                                }
-                            )
-                        )
-                    })
-                    self._accounts = accounts
-                })()
-                this._accountsPromise = _accountsPromise
-            }
-            try {
-                await this._accountsPromise
-            } catch (err) {
-                this._accountsPromise = null
-                this._accounts = null
-                throw err
-            }
-        }
-        return this._accounts
+    @ttlcache({ttl: 5})
+    async getAccountsByOwnerId (ownerId: string) {
+        if (!this.active) return []
+
+        const jsonAccounts = await this.backends.cyclos.$get(
+            `/${ownerId}/accounts`
+        )
+        const accounts = []
+        jsonAccounts.forEach((jsonAccountData: any) => {
+            accounts.push(
+                new CyclosAccount(
+                    { cyclos: this, ...this.backends },
+                    this,
+                    {
+                        cyclos: jsonAccountData,
+                    }
+                )
+            )
+        })
+
+        return accounts
     }
 
     async getSymbol () {
