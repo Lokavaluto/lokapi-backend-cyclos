@@ -215,6 +215,10 @@ class CyclosUserAccount extends UserAccount {
         return this.jsonData.active
     }
 
+    public get status () {
+        return this.jsonData.status
+    }
+
     get internalId () {
         return `cyclos:${this.ownerId}@${this.backends.cyclos.internalId}`
     }
