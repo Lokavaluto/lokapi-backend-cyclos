@@ -219,6 +219,10 @@ class CyclosUserAccount extends UserAccount {
         return `cyclos:${this.ownerId}@${this.backends.cyclos.internalId}`
     }
 
+    get ident() {
+        return this.ownerId
+    }
+
     @ttlcache({ttl: 5})
     async getAccounts () {
         return await this.getAccountsByOwnerId(this.ownerId)

@@ -17,6 +17,10 @@ export class CyclosRecipient extends Recipient implements t.IRecipient {
         return this.backends.cyclos
     }
 
+    get ident () {
+        return this.jsonData.cyclos.owner_id
+    }
+
     get userAccountInternalId () {
         // XXXvlab: should be the second
         return `cyclos:${this.jsonData.cyclos.owner_id}`
